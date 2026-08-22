@@ -35,10 +35,46 @@ async function convert(){
   }
   try {
         const response = await axios.get(
-            "https://api.coinconvert.net/convert/btc/usd?amount=1"
+            "https://api.coingecko.com/api/v3/exchange_rates"
         );
+        const myArray = []
+        myArray.push(cryptoErst.value, cryptoZwei.value)
 
-        console.log(response.data);
+        const foundElements = myArray.map(cryptoName => {
+            // Переводим в нижний регистр ('BTC' -> 'btc'), так как у CoinGecko ключи маленькие
+            const lowerName = cryptoName.toLowerCase(); 
+            
+            // Берем объект валюты из ответа API
+            const fullCryptoData = response.data.rates[lowerName]; 
+            
+            // Если такая валюта найдена, забираем только 2 свойства: name и value
+            if (fullCryptoData) {
+              /* console.log(cryptoErst.value) */
+                const { name, value } = fullCryptoData;
+                return { name, value };
+            }
+            
+            return null; // На случай, если валюта не найдена
+        }).filter(item => item !== null);
+        if(foundElements[0] && cryptoErst.value != "BTC"){
+          const kalkulateResult = (1 / (foundElements[0].value * amount.value)) * foundElements[1].value
+          result.value = kalkulateResult
+          error.value = ""
+          /* console.log(result.value) */
+          return result
+        }
+        else if(foundElements[0] && cryptoErst.value == "BTC"){
+          const kalkulateResult = foundElements[1].value * amount.value
+          result.value = kalkulateResult
+          error.value = ""
+          /* console.log(kalkulateResult) */
+          return result
+          /* console.log(kalkulateResult) */
+        }
+        /* console.log(foundElements) */
+        /* console.log(kalkulateResult) */
+        /* console.log(cryptoZwei.value) */
+       /*  console.log(response.data); */
   } 
   catch (error) {
     console.error(error);
@@ -61,8 +97,12 @@ async function convert(){
     <Selector :setCrypto="setCryptoErst"></Selector>
     <Selector :setCrypto="setCryptoZwei"></Selector>
   </div>
-  <h2>{{ error }}</h2>
-  <h2>{{ result.value }}</h2>
+  <div class="flex justify-center items-center">
+    <div class="bg-white px-10 py-5 w-max rounded-lg shadow-md">
+      <h2>{{ error }}</h2>
+      <h2 v-show="error == ''">Wechselkurs:  {{ result }}</h2>
+  </div>
+  </div>
   <!-- <h2>{{ cryptoZwei }}</h2> -->
 </template>
 

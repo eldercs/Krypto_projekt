@@ -1,5 +1,5 @@
 <template>
-    <ul class = "relative top-20 w-56 p-0 border rounded-md">
+    <ul class = "relative top-28 w-56 p-0 border rounded-md">
         <li @click="selectItem('BTC')" :class="current == 'BTC' ? 'border border-red-300' : ''">Bitcoin</li>
         <li @click="selectItem('ETH')" :class="current == 'ETH' ? 'border border-red-300' : ''">ETH</li>
         <li @click="selectItem('USD')" :class="current == 'USD' ? 'border border-red-300' : ''">USD</li>
