@@ -1,10 +1,25 @@
 <script setup>
 import { ref } from 'vue'
 import Input from './components/Input.vue';
+import { onMounted } from 'vue'
 import Selector from './components/Selector.vue';
 
 import axios from 'axios';
+const items = ref({}) 
 
+const fetchCryptoData = async () => {
+  try {
+    const response = await fetch("https://api.coingecko.com/api/v3/exchange_rates")
+    const data = await response.json()
+    items.value = data 
+    console.log(data)
+  } catch (error) {
+    console.error('Error', error)
+  }
+}
+onMounted(() => {
+  fetchCryptoData()
+})
 
 const amount = ref(0)
 const cryptoErst = ref("")
@@ -16,6 +31,7 @@ function changeAmount(val){
 }
 function setCryptoErst(val){
   cryptoErst.value = val
+  console.log(cryptoErst.value)
 }
 function setCryptoZwei(val){
   cryptoZwei.value = val
@@ -41,20 +57,18 @@ async function convert(){
         myArray.push(cryptoErst.value, cryptoZwei.value)
 
         const foundElements = myArray.map(cryptoName => {
-            // Переводим в нижний регистр ('BTC' -> 'btc'), так как у CoinGecko ключи маленькие
             const lowerName = cryptoName.toLowerCase(); 
-            
-            // Берем объект валюты из ответа API
+
             const fullCryptoData = response.data.rates[lowerName]; 
             
-            // Если такая валюта найдена, забираем только 2 свойства: name и value
+  
             if (fullCryptoData) {
               /* console.log(cryptoErst.value) */
                 const { name, value } = fullCryptoData;
                 return { name, value };
             }
             
-            return null; // На случай, если валюта не найдена
+            return null; 
         }).filter(item => item !== null);
         if(foundElements[0] && cryptoErst.value != "BTC"){
           const kalkulateResult = (1 / (foundElements[0].value * amount.value)) * foundElements[1].value
@@ -93,17 +107,16 @@ async function convert(){
   <Input :changeAmount="changeAmount" :convert="convert">{{ amount }}</Input>
   <!-- <p>{{ amount }}</p> -->
    <!-- <button @click="test()" class="relative top-11 left-5 bg-red-500 text-white py-4 px-6 border rounded-sm">Click</button> -->
-  <div class="flex mx-auto my-0 w-auto justify-around">
-    <Selector :setCrypto="setCryptoErst"></Selector>
-    <Selector :setCrypto="setCryptoZwei"></Selector>
+  <div class="flex mx-auto my-0 w-auto justify-around gap-x-20">
+    <Selector :setCrypto="setCryptoErst" :items="items"></Selector>
+    <Selector :setCrypto="setCryptoZwei" :items="items"></Selector>
   </div>
-  <div class="flex justify-center items-center">
+  <div class="flex justify-center items-center relative -top-8 max-[1100px]:top-40">
     <div class="bg-white px-10 py-5 w-max rounded-lg shadow-md">
       <h2>{{ error }}</h2>
       <h2 v-show="error == ''">Wechselkurs:  {{ result }}</h2>
+    </div>
   </div>
-  </div>
-  <!-- <h2>{{ cryptoZwei }}</h2> -->
 </template>
 
 <style scoped>
